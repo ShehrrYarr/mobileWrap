@@ -2,6 +2,9 @@
 
 namespace App\Services;
 
+use App\Models\BankAccount;
+use App\Models\CashDrawer;
+use App\Models\Expense;
 use App\Models\PurchaseOrder;
 use App\Models\Vendor;
 use App\Support\Period;
@@ -9,14 +12,15 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Figures for the Sales, Purchase and Profit & Loss reports.
+ * Figures for the Sales, Purchase, Expense and Profit & Loss reports.
  *
  * When something counts:
  *  - a sale counts on its completed_at: POS when paid, online when delivered (or completed);
  *    orders still in progress or cancelled are not sales;
  *  - a return counts on the day it is made, at the net price the customer paid;
  *  - cost of goods is the weighted-average cost saved on each sold line;
- *  - purchases count when goods are received (vendor ledger), not when ordered.
+ *  - purchases count when goods are received (vendor ledger), not when ordered;
+ *  - expenses count on the date entered on them (the day the money was paid).
  */
 class ReportService
 {
@@ -290,6 +294,104 @@ class ReportService
                 COALESCE(SUM(CASE WHEN m.type = 'purchase_return' THEN -m.quantity END), 0) returned_qty,
                 COALESCE(SUM(CASE WHEN m.type = 'purchase_return' THEN -m.quantity * m.unit_cost END), 0) returned_value")
             ->orderByDesc('value')->get()->map(fn ($r) => (array) $r)->all();
+    }
+
+    // ── Expenses ────────────────────────────────────────────────────────
+
+    /** Expenses dated in the period, optionally for one category and/or one account key ("cash:1", "bank:2"). */
+    protected function expenses(Period $p, ?int $categoryId = null, ?string $account = null): Builder
+    {
+        $acc = FinanceService::accountColumns($account);
+
+        return DB::table('expenses as e')
+            ->whereBetween('e.date', [$p->from->toDateString(), $p->to->toDateString()])
+            ->when($categoryId, fn ($q) => $q->where('e.expense_category_id', $categoryId))
+            ->when($acc, fn ($q) => $q->where('e.account_type', $acc[0])->where('e.account_id', $acc[1]));
+    }
+
+    public function expenseSummary(Period $p, ?int $categoryId = null, ?string $account = null): array
+    {
+        $r = $this->expenses($p, $categoryId, $account)
+            ->selectRaw('COUNT(*) n, COALESCE(SUM(e.amount), 0) total, COALESCE(MAX(e.amount), 0) largest,
+                COALESCE(SUM(CASE WHEN e.account_type = ? THEN e.amount END), 0) cash', [(new CashDrawer)->getMorphClass()])
+            ->first();
+        $total = (float) $r->total;
+
+        return [
+            'count' => (int) $r->n,
+            'total' => $total,
+            'average' => $r->n ? $total / $r->n : 0.0,
+            'per_day' => $total / max($p->days(), 1),
+            'largest' => (float) $r->largest,
+            'cash' => (float) $r->cash,
+            'bank' => $total - (float) $r->cash,
+        ];
+    }
+
+    public function expensesByCategory(Period $p, ?int $categoryId = null, ?string $account = null): array
+    {
+        return $this->expenses($p, $categoryId, $account)
+            ->leftJoin('expense_categories as c', 'c.id', '=', 'e.expense_category_id')
+            ->groupBy('e.expense_category_id')
+            ->selectRaw("e.expense_category_id id, COALESCE(MAX(c.name), 'Other') name, SUM(e.amount) amount, COUNT(*) n, MAX(e.amount) largest")
+            ->orderByDesc('amount')->get()
+            ->map(fn ($r) => ['id' => (int) $r->id, 'name' => $r->name, 'amount' => (float) $r->amount, 'n' => (int) $r->n, 'largest' => (float) $r->largest])
+            ->all();
+    }
+
+    /** Which cash drawer / bank account the money came out of. */
+    public function expensesByAccount(Period $p, ?int $categoryId = null, ?string $account = null): array
+    {
+        $cash = (new CashDrawer)->getMorphClass();
+        $rows = $this->expenses($p, $categoryId, $account)
+            ->groupBy('e.account_type', 'e.account_id')
+            ->selectRaw('e.account_type, e.account_id, SUM(e.amount) amount, COUNT(*) n')
+            ->orderByDesc('amount')->get();
+
+        $drawers = CashDrawer::whereIn('id', $rows->where('account_type', $cash)->pluck('account_id'))->get()->keyBy('id');
+        $banks = BankAccount::whereIn('id', $rows->where('account_type', '!=', $cash)->pluck('account_id'))->get()->keyBy('id');
+
+        return $rows->map(function ($r) use ($cash, $drawers, $banks) {
+            $isCash = $r->account_type === $cash;
+
+            return [
+                'key' => ($isCash ? 'cash:' : 'bank:').$r->account_id,
+                'name' => FinanceService::accountLabel($isCash ? $drawers->get($r->account_id) : $banks->get($r->account_id)),
+                'kind' => $isCash ? 'cash' : 'bank',
+                'amount' => (float) $r->amount,
+                'n' => (int) $r->n,
+            ];
+        })->all();
+    }
+
+    /** Day by day (month by month for long ranges), split into cash and bank. */
+    public function expensesByDay(Period $p, ?int $categoryId = null, ?string $account = null): array
+    {
+        $key = $this->dateKey('e.date', $p);
+        $rows = $this->expenses($p, $categoryId, $account)
+            ->selectRaw("{$key} k, COUNT(*) n, SUM(e.amount) amount, COALESCE(SUM(CASE WHEN e.account_type = ? THEN e.amount END), 0) cash", [(new CashDrawer)->getMorphClass()])
+            ->groupBy('k')->get()->keyBy('k');
+
+        $out = [];
+        foreach ($p->buckets() as $k => $label) {
+            $amount = (float) ($rows[$k]->amount ?? 0);
+            $cashAmount = (float) ($rows[$k]->cash ?? 0);
+            $out[] = ['key' => $k, 'label' => $label, 'n' => (int) ($rows[$k]->n ?? 0), 'amount' => $amount, 'cash' => $cashAmount, 'bank' => $amount - $cashAmount];
+        }
+
+        return $out;
+    }
+
+    /** The expenses themselves, oldest first (a statement of what was spent). */
+    public function expenseEntries(Period $p, ?int $categoryId = null, ?string $account = null): \Illuminate\Database\Eloquent\Builder
+    {
+        $acc = FinanceService::accountColumns($account);
+
+        return Expense::query()->with('category', 'account', 'user:id,name')
+            ->whereBetween('date', [$p->from->toDateString(), $p->to->toDateString()])
+            ->when($categoryId, fn ($q) => $q->where('expense_category_id', $categoryId))
+            ->when($acc, fn ($q) => $q->where('account_type', $acc[0])->where('account_id', $acc[1]))
+            ->orderBy('date')->orderBy('id');
     }
 
     // ── Profit & loss ───────────────────────────────────────────────────

@@ -84,6 +84,11 @@ Agreed scope and decisions for the Accessory Management System, POS, Laser Cutte
   - Full P&L: product sales − discounts + laser fees + delivery − returns = net revenue; − cost of goods (weighted-average cost saved on each sale, less restocked returns) − laser material − wastage − stock adjustments = gross profit; − expenses by category = net profit; compared with the previous period of the same length.
   - Purchases count when goods are received (vendor ledger). A back-dated receipt also back-dates its stock-ledger entry so both agree.
   - Reports need `reports.view`; cost, margin and the P&L also need `cost.view` (Admin and Manager have both).
+- **Expense editing + Expense report added 2026-11-16.** Decisions:
+  - Editing a saved expense changes its ledger entry in place (no reversal + re-entry): the account balance moves by the difference, a changed account moves the money from the old account to the new one, and `balance_after` on later rows shifts so posting-order balances stay correct (`FinanceService::amend`). The expense records who edited it and when.
+  - The cash rule still applies on edits: only the *extra* cash taken has to be in the drawer.
+  - Expense report (`reports.view`): by category with previous period, by cash/bank account, by day/month and the full list, with PDF. Expenses count on their own date.
+  - Expenses has its own sidebar item under Finance; Bank & Cash keeps Balances and Account ledger.
 
 ## Build phases
 

@@ -31,15 +31,16 @@
         ['title' => 'Finance', 'can' => ['finance.manage', 'inventory.manage']],
         ['label' => 'Purchases', 'icon' => 'ri-shopping-cart-2-line', 'route' => 'admin.purchases.index', 'can' => ['finance.manage', 'inventory.manage']],
         ['label' => 'Vendors', 'icon' => 'ri-truck-line', 'route' => 'admin.vendors.index', 'can' => 'finance.manage'],
+        ['label' => 'Expenses', 'icon' => 'ri-wallet-3-line', 'route' => 'admin.finance.expenses', 'can' => 'finance.manage'],
         ['label' => 'Bank & Cash', 'icon' => 'ri-safe-2-line', 'can' => 'finance.manage', 'children' => [
             ['label' => 'Balances', 'route' => 'admin.finance.accounts'],
             ['label' => 'Account ledger', 'route' => 'admin.finance.ledger'],
-            ['label' => 'Expenses', 'route' => 'admin.finance.expenses'],
         ]],
 
         ['title' => 'Reports', 'can' => 'reports.view'],
         ['label' => 'Sales report', 'icon' => 'ri-line-chart-line', 'route' => 'admin.reports.sales', 'can' => 'reports.view'],
         ['label' => 'Purchase report', 'icon' => 'ri-shopping-cart-line', 'route' => 'admin.reports.purchases', 'can' => 'reports.view'],
+        ['label' => 'Expense report', 'icon' => 'ri-bill-line', 'route' => 'admin.reports.expenses', 'can' => 'reports.view'],
         ['label' => 'Profit & loss', 'icon' => 'ri-scales-3-line', 'route' => 'admin.reports.profit-loss', 'can' => 'cost.view'],
 
         ['title' => 'Storefront', 'can' => 'storefront.manage'],

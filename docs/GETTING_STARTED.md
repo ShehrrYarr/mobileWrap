@@ -78,7 +78,7 @@ To add a 6th theme: add an entry to `config/themes.php`, create `resources/store
 - **Customer khata** (`/admin/customers/{id}`): balance, ledger in date order, orders, receive payment (prints an 80 mm receipt), adjustments for old paper-khata balances, WhatsApp reminder, printable statement. The customer list filters by "owes money" and shows the total receivable.
 - **POS → Khata payment**: collect a customer's balance at the counter (cash or bank) and print the receipt.
 - **Bank & cash** (`/admin/finance/accounts`): balances with today's in/out, transfers (e.g. deposit the day's cash), add / withdraw money (owner capital or drawings), latest movements. **Account ledger** (`/admin/finance/ledger`): filter by account, type, dates and notes, with opening/closing balance and a printable statement.
-- **Expenses** (`/admin/finance/expenses`): month view with category breakdown and change vs last month, receipt photo/PDF upload, editable categories. Deleting an expense puts the money back on its account.
+- **Expenses** (`/admin/finance/expenses`, own item under Finance): record rent, salaries, bills etc. paid from Cash In Hand or a bank account, with receipt photo/PDF and editable categories. Filter by period (same presets as reports), category, cash/bank account and note text; side panel shows totals by account and category. **Edit** corrects the ledger in place: a new amount moves the difference on the account, a new "Paid from" moves the money between accounts, a new date moves the entry in the ledger (edited expenses show an "edited" badge). Deleting an expense puts the money back on its account.
 - **Stock movements** (`/admin/reports/stock-movements`): every stock change across all products with value at cost, filters by type, product and dates.
 - **Statements** print on A4 from any ledger (`/admin/statements/{customer|vendor|account}/{id}`), add `?autoprint=0` to preview without the print dialog.
 
@@ -88,8 +88,9 @@ Demo data (`DemoFinanceSeeder`): five purchases in every state (received, partly
 
 - **Sales report** (`/admin/reports/sales`): net sales, invoices, discounts, returns, laser fees, delivery charges, cost of goods and margin (Admin/Manager), with tabs for day-by-day, products, categories, payment methods & channel, and staff & customers. Filter by period and channel.
 - **Purchase report** (`/admin/reports/purchases`): goods received, returns to vendors, payments and what you owe, by vendor, by bill and by product. Filter by period and vendor.
+- **Expense report** (`/admin/reports/expenses`): total spent vs the previous period, cash vs bank split, by category (with previous period), by cash/bank account, day-by-day (month-by-month for long ranges) and the full list. Filter by period, category and account.
 - **Profit & loss** (`/admin/reports/profit-loss`): full statement vs the previous period — revenue, cost of sales (incl. laser material and wastage), gross profit, expenses by category, net profit.
-- **Download PDF** on each report saves an A4 PDF with the same filters (`/admin/reports/{sales|purchases|profit-loss}/pdf?period=…`). Periods: today, yesterday, this week, last 7 days, this month, last month, last 30 days, this year or custom dates.
+- **Download PDF** on each report saves an A4 PDF with the same filters (`/admin/reports/{sales|purchases|expenses|profit-loss}/pdf?period=…`). Periods: today, yesterday, this week, last 7 days, this month, last month, last 30 days, this year or custom dates.
 
 ## Coming next (per `PROJECT_DECISIONS.md`)
 

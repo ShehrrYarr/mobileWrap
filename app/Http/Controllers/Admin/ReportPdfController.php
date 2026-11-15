@@ -3,14 +3,16 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ExpenseCategory;
 use App\Models\Vendor;
+use App\Services\FinanceService;
 use App\Services\ReportService;
 use App\Support\Period;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
-/** A4 PDF downloads of the Sales, Purchase and Profit & Loss reports (same filters as the screens). */
+/** A4 PDF downloads of the Sales, Purchase, Expense and Profit & Loss reports (same filters as the screens). */
 class ReportPdfController extends Controller
 {
     public function download(Request $request, string $report, ReportService $reports)
@@ -51,6 +53,26 @@ class ReportPdfController extends Controller
                     'bills' => $reports->purchaseBills($range, $vendor?->id),
                     'vendors' => $reports->purchasesByVendor($range, $vendor?->id),
                     'products' => $reports->purchasesByProduct($range, $vendor?->id),
+                ];
+                break;
+
+            case 'expenses':
+                $category = $request->integer('category') ? ExpenseCategory::find($request->integer('category')) : null;
+                $accounts = FinanceService::accountList();
+                $account = isset($accounts[(string) $request->query('account')]) ? (string) $request->query('account') : null;
+                $filters['Category'] = $category?->name ?? 'All categories';
+                $filters['Paid from'] = $account ? $accounts[$account] : 'Cash & all banks';
+                $prevRange = $range->previous();
+                $data = [
+                    'title' => 'Expense report',
+                    's' => $reports->expenseSummary($range, $category?->id, $account),
+                    'prev' => $reports->expenseSummary($prevRange, $category?->id, $account),
+                    'prevRange' => $prevRange,
+                    'byCategory' => $reports->expensesByCategory($range, $category?->id, $account),
+                    'prevByCategory' => collect($reports->expensesByCategory($prevRange, $category?->id, $account))->keyBy('id'),
+                    'byAccount' => $reports->expensesByAccount($range, $category?->id, $account),
+                    'months' => $range->groupsByMonth() ? $reports->expensesByDay($range, $category?->id, $account) : [],
+                    'entries' => $reports->expenseEntries($range, $category?->id, $account)->get(),
                 ];
                 break;
 
