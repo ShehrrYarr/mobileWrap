@@ -16,7 +16,7 @@
                 <ul class="slide-menu" role="menu">
                     @foreach ($item['children'] as $child)
                         <li class="slide">
-                            <a href="{{ route($child['route']) }}" wire:navigate class="side-menu__item" role="menuitem" data-mw-link>{{ $child['label'] }}</a>
+                            <a href="{{ route($child['route']) }}" @unless (! empty($child['plain'])) wire:navigate @endunless class="side-menu__item" role="menuitem" data-mw-link>{{ $child['label'] }}@if (! empty($child['plain'])) <i class="ri-external-link-line fs-12 opacity-50"></i>@endif</a>
                         </li>
                     @endforeach
                 </ul>

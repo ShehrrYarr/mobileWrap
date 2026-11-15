@@ -213,6 +213,9 @@ new #[Layout('admin.layouts.app')] #[Title('Products')] class extends Component
                                 @if (! $product->isRawMaterial())
                                     <a href="{{ route('product', $product->slug) }}" target="_blank" class="btn btn-sm btn-light icon-btn-sm" title="View in store"><i class="ri-external-link-line"></i></a>
                                 @endif
+                                @unless ($product->isRawMaterial())
+                                    <a href="{{ route('admin.labels', ['product' => $product->id]) }}" wire:navigate class="btn btn-sm btn-light icon-btn-sm" title="Print barcode labels"><i class="ri-barcode-line"></i></a>
+                                @endunless
                                 <a href="{{ route('admin.products.edit', $product) }}" wire:navigate class="btn btn-sm btn-light-primary icon-btn-sm" title="Edit"><i class="ri-pencil-line"></i></a>
                                 <button type="button" class="btn btn-sm btn-light-danger icon-btn-sm" title="Delete" x-data @click="confirmAction('“{{ addslashes($product->name) }}” will be moved to trash.', () => $wire.delete({{ $product->id }}))"><i class="ri-delete-bin-line"></i></button>
                             </td>

@@ -17,7 +17,7 @@ class LaserCutterJob extends Model
     ];
 
     protected $fillable = [
-        'number', 'order_id', 'order_item_id', 'customer_id', 'device_model_id', 'material_variant_id',
+        'number', 'order_id', 'order_item_id', 'parent_id', 'attempt', 'customer_id', 'device_model_id', 'material_variant_id',
         'side', 'cut_width_mm', 'cut_height_mm', 'quantity', 'area_cm2', 'wastage_percent', 'total_area_cm2',
         'service_fee', 'status', 'priority', 'operator_id', 'notes', 'failure_reason',
         'started_at', 'completed_at', 'material_deducted_at',
@@ -66,6 +66,31 @@ class LaserCutterJob extends Model
     public function operator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'operator_id');
+    }
+
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(LaserCutterJob::class, 'parent_id');
+    }
+
+    public function recuts(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(LaserCutterJob::class, 'parent_id');
+    }
+
+    public function statusLabel(): string
+    {
+        return self::STATUSES[$this->status][0] ?? ucfirst($this->status);
+    }
+
+    public function statusColor(): string
+    {
+        return self::STATUSES[$this->status][1] ?? 'secondary';
+    }
+
+    public function sideLabel(): string
+    {
+        return ['front' => 'Front', 'back' => 'Back', 'full' => 'Full body'][$this->side] ?? ucfirst($this->side);
     }
 
     /** Area in cm² for given mm dimensions × qty, plus wastage. */

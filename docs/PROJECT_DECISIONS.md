@@ -64,6 +64,12 @@ Agreed scope and decisions for the Accessory Management System, POS, Laser Cutte
 ## Status
 
 - **Phase 1 delivered 2026-11-15** — see `docs/GETTING_STARTED.md` for how to run it and what's included. The five themes above were built as proposed.
+- **Phase 2 delivered 2026-11-16** — POS, laser queue, returns/exchanges, receipts, barcode labels. Decisions made at the start of Phase 2:
+  - Laser service fee: the cashier types it for each job (no price list; the last fee charged is shown as a hint).
+  - Discounts: any POS user can discount any amount (cart Rs/% and per line); discounts are recorded on the invoice.
+  - Khata: any saved customer can buy on credit with no limit checks.
+  - No cash register shifts; cash sales post straight to the Cash In Hand ledger.
+  - POS allows selling when the system shows 0 stock (shows a warning; stock goes negative) so a miscount never blocks a sale.
 
 ## Build phases
 

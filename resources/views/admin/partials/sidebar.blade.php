@@ -2,9 +2,13 @@
     $menu = [
         ['title' => 'Main'],
         ['label' => 'Dashboard', 'icon' => 'ri-dashboard-3-line', 'route' => 'admin.dashboard', 'can' => 'dashboard.view'],
+        ['label' => 'POS', 'icon' => 'ri-computer-line', 'can' => 'pos.use', 'children' => [
+            ['label' => 'Open POS', 'route' => 'admin.pos', 'plain' => true],
+            ['label' => 'POS sales', 'route' => 'admin.pos.sales'],
+            ['label' => 'Returns & exchanges', 'route' => 'admin.returns.index'],
+        ]],
         ['label' => 'Online Orders', 'icon' => 'ri-shopping-bag-3-line', 'route' => 'admin.orders.index', 'can' => 'orders.manage'],
-        ['label' => 'POS', 'icon' => 'ri-computer-line', 'soon' => true, 'can' => 'pos.use'],
-        ['label' => 'Laser Cutter Queue', 'icon' => 'ri-scissors-cut-line', 'soon' => true, 'can' => 'laser.manage'],
+        ['label' => 'Laser Cutter Queue', 'icon' => 'ri-scissors-cut-line', 'route' => 'admin.laser', 'can' => 'laser.manage'],
 
         ['title' => 'Catalog', 'can' => 'catalog.manage'],
         ['label' => 'Products', 'icon' => 'ri-shopping-basket-2-line', 'can' => 'catalog.manage', 'children' => [
@@ -15,7 +19,10 @@
             ['label' => 'Variant options', 'route' => 'admin.attributes'],
         ]],
         ['label' => 'Device Models', 'icon' => 'ri-smartphone-line', 'route' => 'admin.devices', 'can' => 'catalog.manage'],
-        ['label' => 'Inventory', 'icon' => 'ri-archive-stack-line', 'route' => 'admin.inventory.index', 'can' => 'inventory.manage'],
+        ['label' => 'Inventory', 'icon' => 'ri-archive-stack-line', 'can' => 'inventory.manage', 'children' => [
+            ['label' => 'Stock levels', 'route' => 'admin.inventory.index'],
+            ['label' => 'Barcode labels', 'route' => 'admin.labels'],
+        ]],
 
         ['title' => 'People', 'can' => 'customers.manage'],
         ['label' => 'Customers', 'icon' => 'ri-group-line', 'route' => 'admin.customers.index', 'can' => 'customers.manage'],

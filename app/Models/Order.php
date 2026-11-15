@@ -41,6 +41,7 @@ class Order extends Model
         'bank_transfer' => 'Bank Transfer',
         'cash' => 'Cash',
         'customer_credit' => 'Customer Credit (Khata)',
+        'exchange_credit' => 'Exchange credit',
         'split' => 'Split payment',
     ];
 
@@ -120,16 +121,22 @@ class Order extends Model
         return $q->where('channel', 'pos');
     }
 
-    public static function generateNumber(string $channel = 'online'): string
+    /** Sequential numbers per prefix: MW-1001…, POS-1001…, HOLD-1001… */
+    public static function generateNumber(string $channel = 'online', ?string $prefix = null): string
     {
-        $prefix = $channel === 'pos' ? 'POS-' : (setting('checkout.order_prefix', 'MW-'));
-        $next = (int) static::withTrashed()->where('channel', $channel)->max('id') + 1001;
+        $prefix ??= $channel === 'pos' ? 'POS-' : setting('checkout.order_prefix', 'MW-');
 
-        do {
-            $number = $prefix.$next++;
-        } while (static::withTrashed()->where('number', $number)->exists());
+        $last = static::withTrashed()->where('number', 'like', $prefix.'%')
+            ->pluck('number')
+            ->map(fn ($n) => (int) substr($n, strlen($prefix)))
+            ->max();
+        $next = max(1001, (int) $last + 1);
 
-        return $number;
+        while (static::withTrashed()->where('number', $prefix.$next)->exists()) {
+            $next++;
+        }
+
+        return $prefix.$next;
     }
 
     public function statusLabel(): string

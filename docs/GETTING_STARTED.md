@@ -61,6 +61,16 @@ To add a 6th theme: add an entry to `config/themes.php`, create `resources/store
 - **Orders:** admin order list/detail, status timeline (cancel restocks), verify COD / bank transfers → posts to the cash drawer or bank ledger.
 - **Settings:** store info & logo, delivery fee + free-delivery threshold, checkout methods, bank accounts (shown on checkout), info pages, staff with preset roles.
 
+## Phase 2 — POS, laser queue, returns, labels
+
+- **POS** (`/admin/pos`, full screen): USB barcode scanner or SKU entry, product grid by category, variant picker, editable prices and line discounts, cart discount (Rs or %), coupons, walk-in or saved customers (wholesale customers get wholesale prices automatically), hold/resume, split payment across cash (with change), bank transfer, khata and exchange credit. Shortcuts: F2 search, F4 laser cut, F8 hold, F9 pay.
+- **Ledgers on every sale:** cash → Cash In Hand, bank → that bank account, khata → customer ledger; stock leaves via the stock ledger.
+- **Laser cuts:** added at the POS (phone model presets fill the cut size, cashier types the fee). On payment the job goes to `/admin/laser` and the material area (+ wastage %) is deducted from the roll. Operator board: start → done / failed → one re-cut (logged as wastage) or cancel (material returned).
+- **Receipts:** 80 mm thermal and A4 invoice, each with an invoice barcode. Footer, header line, default format and auto-print in Settings → POS & receipts.
+- **Returns & exchanges** (`/admin/returns`): find the invoice (scan the receipt barcode), pick items and condition (restock / damaged); refunds are spread across the invoice discount. Refund by cash, bank, khata credit, none — or exchange, which opens the POS with the credit applied (any leftover is paid back in cash).
+- **Barcode labels** (`/admin/labels`, or the barcode button on a product): 38×25, 40×30 or 50×30 mm, EAN-13 (Code 128 fallback), optional price and store name.
+- **POS sales list** (`/admin/pos/sales`): daily totals by payment method, reprint receipts, start a return.
+
 ## Coming next (per `PROJECT_DECISIONS.md`)
 
-Phase 2: POS + laser cutter queue + returns + barcode label printing. Phase 3: vendors, purchases and ledgers. Phase 4: reports.
+Phase 3: vendors, purchase orders, vendor & customer ledger screens (khata payments), bank/cash ledgers and expenses. Phase 4: reports.

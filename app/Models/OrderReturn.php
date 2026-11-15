@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class OrderReturn extends Model
 {
     protected $fillable = [
-        'number', 'order_id', 'type', 'refund_method', 'refund_amount', 'exchange_order_id', 'reason', 'user_id',
+        'number', 'order_id', 'type', 'refund_method', 'refund_amount', 'bank_account_id', 'financial_transaction_id', 'exchange_order_id', 'reason', 'user_id',
     ];
 
     protected function casts(): array
@@ -25,6 +25,16 @@ class OrderReturn extends Model
     public function items(): HasMany
     {
         return $this->hasMany(OrderReturnItem::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function bankAccount(): BelongsTo
+    {
+        return $this->belongsTo(BankAccount::class);
     }
 
     public function exchangeOrder(): BelongsTo

@@ -102,6 +102,31 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Volt::route('/staff', 'admin.staff.index')->name('staff');
         });
 
+        // ── Phase 2: POS, receipts, returns, laser queue, labels ──────────
+        Route::middleware('can:pos.use')->group(function () {
+            Volt::route('/pos', 'admin.pos.terminal')->name('pos');
+            Volt::route('/pos/sales', 'admin.pos.sales')->name('pos.sales');
+        });
+
+        Route::get('/receipt/{order}', function (Request $request, \App\Models\Order $order) {
+            abort_unless($request->user()->can('pos.use') || $request->user()->can('orders.manage'), 403);
+            abort_if($order->status === 'held', 404);
+
+            return view('admin.pos.receipt', ['order' => $order, 'format' => $request->query('format', setting('pos.receipt_format', '80mm'))]);
+        })->name('pos.receipt');
+
+        Route::middleware('permission:pos.use|orders.manage')->group(function () {
+            Volt::route('/returns', 'admin.returns.index')->name('returns.index');
+            Volt::route('/returns/create', 'admin.returns.create')->name('returns.create');
+        });
+
+        Volt::route('/laser', 'admin.laser.queue')->name('laser')->middleware('can:laser.manage');
+
+        Route::middleware('permission:inventory.manage|catalog.manage')->group(function () {
+            Volt::route('/labels', 'admin.labels.index')->name('labels');
+            Route::get('/labels/print', fn () => view('admin.labels.print', ['job' => session('label_job', [])]))->name('labels.print');
+        });
+
         // Original Herozi demo pages, kept for reference while developing.
         if (app()->isLocal()) {
             Route::get('/demo/{page}', [DashboardController::class, 'index'])->where('page', '[A-Za-z0-9\-]+')->name('demo');

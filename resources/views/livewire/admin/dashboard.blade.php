@@ -34,7 +34,7 @@ new #[Layout('admin.layouts.app')] #[Title('Dashboard')] class extends Component
 
         return [
             'stats' => [
-                ['label' => 'Online sales (30 days)', 'value' => money((clone $online)->where('placed_at', '>=', now()->subDays(30))->sum('grand_total')), 'icon' => 'ri-money-dollar-circle-line', 'color' => 'success'],
+                ['label' => 'Sales today (POS + online)', 'value' => money(Order::whereNotIn('status', ['held', 'cancelled'])->whereDate('placed_at', today())->sum('grand_total')), 'icon' => 'ri-money-dollar-circle-line', 'color' => 'success', 'url' => auth('web')->user()->can('pos.use') ? route('admin.pos.sales') : null],
                 ['label' => 'Orders awaiting action', 'value' => Order::online()->whereIn('status', ['pending', 'confirmed', 'processing'])->count(), 'icon' => 'ri-time-line', 'color' => 'warning', 'url' => route('admin.orders.index', ['status' => 'pending'])],
                 ['label' => 'Payments to verify', 'value' => DB::table('order_payments')->where('status', 'pending')->where('method', 'bank_transfer')->count(), 'icon' => 'ri-bank-card-line', 'color' => 'info', 'url' => route('admin.orders.index', ['payment' => 'verify'])],
                 ['label' => 'Low-stock variants', 'value' => $lowStock->count() >= 8 ? '8+' : $lowStock->count(), 'icon' => 'ri-error-warning-line', 'color' => 'danger', 'url' => route('admin.inventory.index', ['filter' => 'low'])],

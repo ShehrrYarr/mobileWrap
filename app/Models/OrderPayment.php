@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class OrderPayment extends Model
 {
     protected $fillable = [
-        'order_id', 'method', 'amount', 'bank_account_id', 'cash_drawer_id', 'reference',
+        'order_id', 'method', 'amount', 'tendered', 'bank_account_id', 'cash_drawer_id', 'reference',
         'receipt_path', 'status', 'verified_by', 'verified_at', 'financial_transaction_id', 'paid_at',
     ];
 
@@ -16,6 +16,7 @@ class OrderPayment extends Model
     {
         return [
             'amount' => 'decimal:2',
+            'tendered' => 'decimal:2',
             'verified_at' => 'datetime',
             'paid_at' => 'datetime',
         ];
