@@ -28,7 +28,10 @@ mix.sass(path.join(folder.src_assets, 'scss/app.scss'), 'assets/css/app.min.css'
    .sass(path.join(folder.src_assets, 'scss/bootstrap.scss'), 'assets/css/bootstrap.min.css')
    .sass(path.join(folder.src_assets, 'scss/icons.scss'), 'assets/css/icons.min.css')
    .sass(path.join(folder.src_assets, 'scss/custom.scss'), 'assets/css/custom.min.css')
-   .setPublicPath(folder.dist);
+   .setPublicPath(folder.dist)
+   // Fonts/images copied by Mix are referenced relative to the CSS (assets/css -> ../../fonts),
+   // so the app also works from a sub-folder such as /mobileWrap on the live server.
+   .setResourceRoot('../../');
 
 // Copy assets (images, JS, libs, json) to the dist folder
 mix.copyDirectory(path.join(folder.src_assets, 'images'), path.join(folder.dist_assets, 'images'));
