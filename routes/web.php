@@ -148,6 +148,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Volt::route('/reports/stock-movements', 'admin.reports.stock-movements')->name('reports.stock-movements');
         });
 
+        // Sales / purchase / profit & loss reports with PDF downloads
+        Route::middleware('can:reports.view')->prefix('reports')->name('reports.')->group(function () {
+            Volt::route('/sales', 'admin.reports.sales')->name('sales');
+            Volt::route('/purchases', 'admin.reports.purchases')->name('purchases');
+            Volt::route('/profit-loss', 'admin.reports.profit-loss')->name('profit-loss')->middleware('can:cost.view');
+            Route::get('/{report}/pdf', [\App\Http\Controllers\Admin\ReportPdfController::class, 'download'])
+                ->whereIn('report', ['sales', 'purchases', 'profit-loss'])->name('pdf');
+        });
+
         Volt::route('/customers/{customer}', 'admin.customers.show')->name('customers.show')->middleware('can:customers.manage');
 
         Route::get('/statements/{type}/{id}', [\App\Http\Controllers\Admin\StatementController::class, 'show'])

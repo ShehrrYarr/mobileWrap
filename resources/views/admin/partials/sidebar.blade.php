@@ -37,6 +37,11 @@
             ['label' => 'Expenses', 'route' => 'admin.finance.expenses'],
         ]],
 
+        ['title' => 'Reports', 'can' => 'reports.view'],
+        ['label' => 'Sales report', 'icon' => 'ri-line-chart-line', 'route' => 'admin.reports.sales', 'can' => 'reports.view'],
+        ['label' => 'Purchase report', 'icon' => 'ri-shopping-cart-line', 'route' => 'admin.reports.purchases', 'can' => 'reports.view'],
+        ['label' => 'Profit & loss', 'icon' => 'ri-scales-3-line', 'route' => 'admin.reports.profit-loss', 'can' => 'cost.view'],
+
         ['title' => 'Storefront', 'can' => 'storefront.manage'],
         ['label' => 'Themes', 'icon' => 'ri-palette-line', 'route' => 'admin.storefront.themes', 'can' => 'storefront.manage'],
         ['label' => 'Homepage Builder', 'icon' => 'ri-layout-masonry-line', 'route' => 'admin.storefront.homepage', 'can' => 'storefront.manage'],

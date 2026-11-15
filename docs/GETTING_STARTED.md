@@ -84,6 +84,13 @@ To add a 6th theme: add an entry to `config/themes.php`, create `resources/store
 
 Demo data (`DemoFinanceSeeder`): five purchases in every state (received, partly received, ordered, draft, one with a return), vendor payments, this month's expenses, a cash deposit and a khata collection.
 
+## Reports (Admin → Reports)
+
+- **Sales report** (`/admin/reports/sales`): net sales, invoices, discounts, returns, laser fees, delivery charges, cost of goods and margin (Admin/Manager), with tabs for day-by-day, products, categories, payment methods & channel, and staff & customers. Filter by period and channel.
+- **Purchase report** (`/admin/reports/purchases`): goods received, returns to vendors, payments and what you owe, by vendor, by bill and by product. Filter by period and vendor.
+- **Profit & loss** (`/admin/reports/profit-loss`): full statement vs the previous period — revenue, cost of sales (incl. laser material and wastage), gross profit, expenses by category, net profit.
+- **Download PDF** on each report saves an A4 PDF with the same filters (`/admin/reports/{sales|purchases|profit-loss}/pdf?period=…`). Periods: today, yesterday, this week, last 7 days, this month, last month, last 30 days, this year or custom dates.
+
 ## Coming next (per `PROJECT_DECISIONS.md`)
 
-Phase 4: marketing & reporting polish — sales, profit and stock reports, dashboards.
+Rest of Phase 4: marketing & reporting polish — dashboards and charts.

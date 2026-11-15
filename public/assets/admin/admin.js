@@ -45,6 +45,37 @@
         }).then(function (r) { if (r.isConfirmed) go(); });
     };
 
+    // PDF downloads (<a data-pdf href="…">): the button shows "Please wait…" until the file is
+    // ready, then the browser saves it under the server's file name.
+    document.addEventListener('click', function (e) {
+        var a = e.target.closest && e.target.closest('a[data-pdf]');
+        if (!a || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey) return;
+        e.preventDefault();
+        if (a.classList.contains('mw-loading')) return;
+        var ux = window.mwUx;
+        if (ux) ux.start(a);
+        var done = ux ? ux.track() : function () {};
+        fetch(a.href, { credentials: 'same-origin', headers: { Accept: 'application/pdf' } })
+            .then(function (r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                var cd = r.headers.get('Content-Disposition') || '';
+                var m = cd.match(/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i);
+                var name = m ? decodeURIComponent(m[1]) : 'report.pdf';
+                return r.blob().then(function (blob) {
+                    var url = URL.createObjectURL(blob);
+                    var link = document.createElement('a');
+                    link.href = url;
+                    link.download = name;
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                    setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
+                });
+            })
+            .catch(function () { window.location.href = a.href; })
+            .finally(function () { done(); if (ux) ux.stop(a); });
+    });
+
     function initTooltips() {
         if (!window.bootstrap) return;
         document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {

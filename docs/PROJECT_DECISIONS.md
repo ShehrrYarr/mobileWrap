@@ -78,6 +78,12 @@ Agreed scope and decisions for the Accessory Management System, POS, Laser Cutte
   - Cash can't go below zero: vendor payments, expenses, transfers and withdrawals from Cash In Hand are refused if the drawer doesn't hold enough. Banks may overdraw.
   - Ledger screens show running balances in date order (back-dated entries slot into place); `balance_after` on rows stays in posting order.
   - Unit costs are stored to 4 decimals because raw materials are costed per cm².
+- **Reports built 2026-11-16** (start of Phase 4) — Sales, Purchase and Profit & loss reports on screen with real PDF downloads (dompdf, A4). Decisions:
+  - A POS sale counts when paid; an online order counts when **delivered** (or completed). Orders still in progress are shown as "pending online orders", not sales. Returns count on the day they're made, at the net price paid.
+  - Sales report breakdowns: day-by-day (month-by-month beyond ~2 months), products, categories, payment methods & channel, staff & top customers.
+  - Full P&L: product sales − discounts + laser fees + delivery − returns = net revenue; − cost of goods (weighted-average cost saved on each sale, less restocked returns) − laser material − wastage − stock adjustments = gross profit; − expenses by category = net profit; compared with the previous period of the same length.
+  - Purchases count when goods are received (vendor ledger). A back-dated receipt also back-dates its stock-ledger entry so both agree.
+  - Reports need `reports.view`; cost, margin and the P&L also need `cost.view` (Admin and Manager have both).
 
 ## Build phases
 

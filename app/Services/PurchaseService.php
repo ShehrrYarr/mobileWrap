@@ -98,7 +98,12 @@ class PurchaseService
                 }
 
                 $variant = $item->variant;
-                $this->inventory->adjust($variant, $qty, 'purchase', $po, "Received on {$po->number}", (float) $item->unit_cost);
+                $movement = $this->inventory->adjust($variant, $qty, 'purchase', $po, "Received on {$po->number}", (float) $item->unit_cost);
+                // A back-dated receipt ("Received on" earlier day) shows on that day in the stock
+                // ledger and purchase report, matching the vendor ledger entry.
+                if ($date && ! \Illuminate\Support\Carbon::parse($date)->isToday()) {
+                    $movement->forceFill(['created_at' => \Illuminate\Support\Carbon::parse($date)->setTimeFrom(now())])->save();
+                }
                 // weighted-average cost becomes the product's cost price
                 $avg = (float) $variant->fresh('stock')->stock?->average_cost;
                 if ($avg > 0) {
