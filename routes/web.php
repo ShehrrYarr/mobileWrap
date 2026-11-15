@@ -127,6 +127,33 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/labels/print', fn () => view('admin.labels.print', ['job' => session('label_job', [])]))->name('labels.print');
         });
 
+        // ── Phase 3: vendors, purchases, khata, bank & cash, expenses ─────
+        Route::middleware('can:finance.manage')->group(function () {
+            Volt::route('/vendors', 'admin.vendors.index')->name('vendors.index');
+            Volt::route('/vendors/{vendor}', 'admin.vendors.show')->name('vendors.show');
+            Volt::route('/finance/accounts', 'admin.finance.accounts')->name('finance.accounts');
+            Volt::route('/finance/ledger', 'admin.finance.ledger')->name('finance.ledger');
+            Volt::route('/finance/expenses', 'admin.finance.expenses')->name('finance.expenses');
+        });
+
+        Route::middleware('permission:finance.manage|inventory.manage')->group(function () {
+            Volt::route('/purchases', 'admin.purchases.index')->name('purchases.index');
+            Volt::route('/purchases/create', 'admin.purchases.form')->name('purchases.create');
+            Volt::route('/purchases/{purchase}/edit', 'admin.purchases.form')->name('purchases.edit');
+            Volt::route('/purchases/{purchase}', 'admin.purchases.show')->name('purchases.show');
+            Route::get('/purchases/{purchase}/print', fn (\App\Models\PurchaseOrder $purchase) => view('admin.print.purchase', ['po' => $purchase->load('items.variant.product', 'vendor', 'user')]))->name('purchases.print');
+        });
+
+        Route::middleware('permission:inventory.manage|reports.view')->group(function () {
+            Volt::route('/reports/stock-movements', 'admin.reports.stock-movements')->name('reports.stock-movements');
+        });
+
+        Volt::route('/customers/{customer}', 'admin.customers.show')->name('customers.show')->middleware('can:customers.manage');
+
+        Route::get('/statements/{type}/{id}', [\App\Http\Controllers\Admin\StatementController::class, 'show'])
+            ->whereIn('type', ['customer', 'vendor', 'account'])->name('statements');
+        Route::get('/payment-receipt/{entry}', [\App\Http\Controllers\Admin\StatementController::class, 'paymentReceipt'])->name('payment-receipt');
+
         // Original Herozi demo pages, kept for reference while developing.
         if (app()->isLocal()) {
             Route::get('/demo/{page}', [DashboardController::class, 'index'])->where('page', '[A-Za-z0-9\-]+')->name('demo');

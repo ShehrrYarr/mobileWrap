@@ -18,6 +18,9 @@ new #[Layout('admin.layouts.app')] #[Title('Customers')] class extends Component
     #[Url(except: '')]
     public string $type = '';
 
+    #[Url(except: '')]
+    public string $khata = '';
+
     public bool $showForm = false;
 
     public ?int $editingId = null;
@@ -26,7 +29,7 @@ new #[Layout('admin.layouts.app')] #[Title('Customers')] class extends Component
 
     public function updated($prop): void
     {
-        if (in_array($prop, ['search', 'type'])) {
+        if (in_array($prop, ['search', 'type', 'khata'])) {
             $this->resetPage();
         }
     }
@@ -75,7 +78,10 @@ new #[Layout('admin.layouts.app')] #[Title('Customers')] class extends Component
                 ->withSum(['orders as spent' => fn ($q) => $q->whereNotIn('status', ['cancelled', 'held'])], 'grand_total')
                 ->when($this->search, fn ($q) => $q->where(fn ($q) => $q->where('name', 'like', "%{$this->search}%")->orWhere('phone', 'like', "%{$this->search}%")->orWhere('email', 'like', "%{$this->search}%")))
                 ->when($this->type, fn ($q) => $q->where('type', $this->type))
+                ->when($this->khata === 'owes', fn ($q) => $q->where('current_balance', '>', 0))
+                ->when($this->khata === 'owes', fn ($q) => $q->orderByDesc('current_balance'))
                 ->latest('id')->paginate(20),
+            'receivable' => (float) Customer::where('current_balance', '>', 0)->sum('current_balance'),
         ];
     }
 }; ?>
@@ -83,6 +89,7 @@ new #[Layout('admin.layouts.app')] #[Title('Customers')] class extends Component
 <div>
     <x-admin.page-header title="Customers" subtitle="Storefront accounts, guests from online orders, and POS / wholesale (khata) customers.">
         <x-slot:actions>
+            <button class="badge bg-danger-subtle text-danger fs-13 py-2 px-3 border-0" wire:click="$set('khata', 'owes')" title="Show customers who owe">Khata receivable: {{ money($receivable) }}</button>
             <button class="btn btn-sm btn-primary" wire:click="create"><i class="ri-user-add-line me-1"></i>New customer</button>
         </x-slot:actions>
     </x-admin.page-header>
@@ -93,6 +100,9 @@ new #[Layout('admin.layouts.app')] #[Title('Customers')] class extends Component
                 <div class="col-md-5"><div class="form-icon"><input type="search" class="form-control form-control-icon" placeholder="Name, phone or email" wire:model.live.debounce.300ms="search"><i class="ri-search-2-line text-muted"></i></div></div>
                 <div class="col-md-3">
                     <select class="form-select" wire:model.live="type"><option value="">All types</option><option value="retail">Retail</option><option value="wholesale">Wholesale</option></select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" wire:model.live="khata"><option value="">Any balance</option><option value="owes">Owes money (khata)</option></select>
                 </div>
             </div>
         </div>
@@ -105,7 +115,7 @@ new #[Layout('admin.layouts.app')] #[Title('Customers')] class extends Component
                             <td>
                                 <div class="d-flex align-items-center gap-2">
                                     <span class="avatar avatar-sm avatar-item bg-primary-subtle text-primary fw-semibold">{{ Str::upper(Str::substr($c->name, 0, 1)) }}</span>
-                                    <div><div class="fw-medium">{{ $c->name }}</div>
+                                    <div><a href="{{ route('admin.customers.show', $c) }}" wire:navigate class="fw-medium text-body">{{ $c->name }}</a>
                                         @if ($c->hasAccount())<span class="badge bg-primary-subtle text-primary fs-10">Online account</span>@endif
                                     </div>
                                 </div>
@@ -116,7 +126,10 @@ new #[Layout('admin.layouts.app')] #[Title('Customers')] class extends Component
                             <td class="text-end">{{ money($c->spent ?? 0) }}</td>
                             <td class="text-end {{ $c->current_balance > 0 ? 'text-danger fw-semibold' : 'text-muted' }}">{{ money($c->current_balance) }}</td>
                             <td class="fs-13 text-muted">{{ $c->last_order_at?->diffForHumans() ?? '—' }}</td>
-                            <td class="text-end"><button class="btn btn-sm btn-light-primary icon-btn-sm" wire:click="edit({{ $c->id }})"><i class="ri-pencil-line"></i></button></td>
+                            <td class="text-end text-nowrap">
+                                <a href="{{ route('admin.customers.show', $c) }}" wire:navigate class="btn btn-sm btn-light-primary icon-btn-sm" title="Khata & history"><i class="ri-book-open-line"></i></a>
+                                <button class="btn btn-sm btn-light icon-btn-sm" wire:click="edit({{ $c->id }})" title="Edit"><i class="ri-pencil-line"></i></button>
+                            </td>
                         </tr>
                     @empty
                         <tr><td colspan="8"><x-admin.empty icon="ri-group-line" title="No customers found" /></td></tr>

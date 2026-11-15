@@ -14,7 +14,7 @@ class InventoryStock extends Model
         return [
             'quantity' => 'decimal:3',
             'reserved_quantity' => 'decimal:3',
-            'average_cost' => 'decimal:2',
+            'average_cost' => 'decimal:4',
         ];
     }
 

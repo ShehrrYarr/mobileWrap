@@ -1,4 +1,4 @@
-# Mobile Wrap — Getting started (Phase 1)
+# Mobile Wrap — Getting started
 
 ## Run it locally (WAMP)
 
@@ -71,6 +71,19 @@ To add a 6th theme: add an entry to `config/themes.php`, create `resources/store
 - **Barcode labels** (`/admin/labels`, or the barcode button on a product): 38×25, 40×30 or 50×30 mm, EAN-13 (Code 128 fallback), optional price and store name.
 - **POS sales list** (`/admin/pos/sales`): daily totals by payment method, reprint receipts, start a return.
 
+## Phase 3 — purchases, ledgers, bank & cash, expenses
+
+- **Vendors** (`/admin/vendors`): opening balance, what you owe each vendor, ledger with date filter and adjustments, pay vendor (cash or bank, optionally against a bill), printable statement.
+- **Purchases** (`/admin/purchases`): enter the vendor's bill (bill no., due date, discount, freight). Save as draft, as ordered, or **save & receive** in one go. Receive partial deliveries later; stock and the payable are booked on receipt and cost prices re-average (weighted average). Return goods to the vendor, pay against the bill (or an advance before delivery), cancel unreceived POs, print the PO. Raw-material lines are in cm² and have a **roll calculator** (rolls × width × length, price per roll).
+- **Customer khata** (`/admin/customers/{id}`): balance, ledger in date order, orders, receive payment (prints an 80 mm receipt), adjustments for old paper-khata balances, WhatsApp reminder, printable statement. The customer list filters by "owes money" and shows the total receivable.
+- **POS → Khata payment**: collect a customer's balance at the counter (cash or bank) and print the receipt.
+- **Bank & cash** (`/admin/finance/accounts`): balances with today's in/out, transfers (e.g. deposit the day's cash), add / withdraw money (owner capital or drawings), latest movements. **Account ledger** (`/admin/finance/ledger`): filter by account, type, dates and notes, with opening/closing balance and a printable statement.
+- **Expenses** (`/admin/finance/expenses`): month view with category breakdown and change vs last month, receipt photo/PDF upload, editable categories. Deleting an expense puts the money back on its account.
+- **Stock movements** (`/admin/reports/stock-movements`): every stock change across all products with value at cost, filters by type, product and dates.
+- **Statements** print on A4 from any ledger (`/admin/statements/{customer|vendor|account}/{id}`), add `?autoprint=0` to preview without the print dialog.
+
+Demo data (`DemoFinanceSeeder`): five purchases in every state (received, partly received, ordered, draft, one with a return), vendor payments, this month's expenses, a cash deposit and a khata collection.
+
 ## Coming next (per `PROJECT_DECISIONS.md`)
 
-Phase 3: vendors, purchase orders, vendor & customer ledger screens (khata payments), bank/cash ledgers and expenses. Phase 4: reports.
+Phase 4: marketing & reporting polish — sales, profit and stock reports, dashboards.

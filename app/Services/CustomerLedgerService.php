@@ -13,6 +13,23 @@ use Illuminate\Support\Facades\DB;
  */
 class CustomerLedgerService
 {
+    /** Khata collection: money in to cash/bank, customer owes less. */
+    public function receivePayment(Customer $customer, \App\Models\BankAccount|\App\Models\CashDrawer $account, float $amount, ?string $note = null): CustomerTransaction
+    {
+        if ($amount <= 0) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['amount' => 'Enter an amount greater than zero.']);
+        }
+
+        return DB::transaction(function () use ($customer, $account, $amount, $note) {
+            $label = $note ?: 'Khata payment from '.$customer->name;
+            $txn = app(FinanceService::class)->record($account, 'customer_payment', $amount, 0, null, $customer, $label);
+            $entry = $this->record($customer, 'payment', 0, $amount, null, $label, $txn->id);
+            $txn->update(['reference_type' => $entry->getMorphClass(), 'reference_id' => $entry->id]);
+
+            return $entry;
+        });
+    }
+
     public function record(
         Customer $customer,
         string $type,

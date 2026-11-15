@@ -32,7 +32,7 @@ class InventoryService
             // Weighted average cost on incoming stock
             if ($quantity > 0 && $unitCost !== null && $unitCost > 0) {
                 $stock->average_cost = $after > 0
-                    ? round((max($before, 0) * (float) $stock->average_cost + $quantity * $unitCost) / max($after, $quantity), 2)
+                    ? round((max($before, 0) * (float) $stock->average_cost + $quantity * $unitCost) / max($after, $quantity), 4)
                     : $unitCost;
             }
 

@@ -21,12 +21,21 @@
         ['label' => 'Device Models', 'icon' => 'ri-smartphone-line', 'route' => 'admin.devices', 'can' => 'catalog.manage'],
         ['label' => 'Inventory', 'icon' => 'ri-archive-stack-line', 'can' => 'inventory.manage', 'children' => [
             ['label' => 'Stock levels', 'route' => 'admin.inventory.index'],
+            ['label' => 'Stock movements', 'route' => 'admin.reports.stock-movements'],
             ['label' => 'Barcode labels', 'route' => 'admin.labels'],
         ]],
 
         ['title' => 'People', 'can' => 'customers.manage'],
-        ['label' => 'Customers', 'icon' => 'ri-group-line', 'route' => 'admin.customers.index', 'can' => 'customers.manage'],
-        ['label' => 'Vendors & Ledgers', 'icon' => 'ri-book-2-line', 'soon' => true, 'can' => 'finance.manage'],
+        ['label' => 'Customers & khata', 'icon' => 'ri-group-line', 'route' => 'admin.customers.index', 'can' => 'customers.manage'],
+
+        ['title' => 'Finance', 'can' => ['finance.manage', 'inventory.manage']],
+        ['label' => 'Purchases', 'icon' => 'ri-shopping-cart-2-line', 'route' => 'admin.purchases.index', 'can' => ['finance.manage', 'inventory.manage']],
+        ['label' => 'Vendors', 'icon' => 'ri-truck-line', 'route' => 'admin.vendors.index', 'can' => 'finance.manage'],
+        ['label' => 'Bank & Cash', 'icon' => 'ri-safe-2-line', 'can' => 'finance.manage', 'children' => [
+            ['label' => 'Balances', 'route' => 'admin.finance.accounts'],
+            ['label' => 'Account ledger', 'route' => 'admin.finance.ledger'],
+            ['label' => 'Expenses', 'route' => 'admin.finance.expenses'],
+        ]],
 
         ['title' => 'Storefront', 'can' => 'storefront.manage'],
         ['label' => 'Themes', 'icon' => 'ri-palette-line', 'route' => 'admin.storefront.themes', 'can' => 'storefront.manage'],

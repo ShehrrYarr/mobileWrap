@@ -1,8 +1,8 @@
+{{-- 'can' may be one permission or a list (any of them grants access). --}}
+@php($allowed = fn ($can) => $can === null || collect((array) $can)->contains(fn ($p) => auth('web')->user()?->can($p)))
 <ul class="main-menu" role="menu">
     @foreach ($menu as $item)
-        @if (isset($item['can']) && ! auth('web')->user()?->can($item['can']))
-            @continue
-        @endif
+        @continue (! $allowed($item['can'] ?? null))
 
         @if (isset($item['title']))
             <li class="menu-title" role="presentation">{{ $item['title'] }}</li>
@@ -15,6 +15,7 @@
                 </a>
                 <ul class="slide-menu" role="menu">
                     @foreach ($item['children'] as $child)
+                        @continue (! $allowed($child['can'] ?? null))
                         <li class="slide">
                             <a href="{{ route($child['route']) }}" @unless (! empty($child['plain'])) wire:navigate @endunless class="side-menu__item" role="menuitem" data-mw-link>{{ $child['label'] }}@if (! empty($child['plain'])) <i class="ri-external-link-line fs-12 opacity-50"></i>@endif</a>
                         </li>

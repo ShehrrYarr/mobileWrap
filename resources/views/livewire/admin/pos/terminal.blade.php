@@ -61,6 +61,13 @@ new #[Layout('admin.layouts.pos')] #[Title('POS')] class extends Component
 
     public ?int $completedOrderId = null;
 
+    /** Khata collection (customer pays off their balance at the counter) */
+    public bool $showCollect = false;
+
+    public string $collectSearch = '';
+
+    public array $collect = [];
+
     protected const STATE_KEY = 'pos.state';
 
     public function mount(): void
@@ -483,6 +490,46 @@ new #[Layout('admin.layouts.pos')] #[Title('POS')] class extends Component
         }
     }
 
+    public function openCollect(): void
+    {
+        $this->resetErrorBag();
+        $customer = $this->customer();
+        $owes = $customer && (float) $customer->current_balance > 0;
+        $this->collectSearch = '';
+        $this->collect = [
+            'customer_id' => $owes ? $customer->id : null,
+            'method' => 'cash',
+            'bank_account_id' => BankAccount::active()->value('id'),
+            'amount' => $owes ? (float) $customer->current_balance : '',
+            'note' => '',
+        ];
+        $this->showCollect = true;
+    }
+
+    public function pickCollectCustomer(int $id): void
+    {
+        $this->collect['customer_id'] = $id;
+        $this->collect['amount'] = max(0, (float) Customer::find($id)?->current_balance);
+    }
+
+    public function saveCollect(\App\Services\CustomerLedgerService $ledger): void
+    {
+        $this->validate([
+            'collect.customer_id' => 'required|exists:customers,id',
+            'collect.method' => 'required|in:cash,bank',
+            'collect.bank_account_id' => 'required_if:collect.method,bank|nullable|exists:bank_accounts,id',
+            'collect.amount' => 'required|numeric|min:1',
+        ], ['collect.customer_id.required' => 'Choose the customer who is paying.'], ['collect.amount' => 'amount', 'collect.bank_account_id' => 'bank account']);
+
+        $customer = Customer::findOrFail($this->collect['customer_id']);
+        $account = $this->collect['method'] === 'bank' ? BankAccount::findOrFail($this->collect['bank_account_id']) : \App\Models\CashDrawer::main();
+        $entry = $ledger->receivePayment($customer, $account, (float) $this->collect['amount'], $this->collect['note'] ?: null);
+
+        $this->showCollect = false;
+        $this->dispatch('toast', type: 'success', message: money($entry->credit).' received from '.$customer->name.'. Khata now '.money($customer->current_balance).'.');
+        $this->dispatch('pos-print', url: route('admin.payment-receipt', $entry));
+    }
+
     public function with(): array
     {
         $customer = $this->customer();
@@ -528,6 +575,12 @@ new #[Layout('admin.layouts.pos')] #[Title('POS')] class extends Component
             'held' => Order::where('status', 'held')->withCount('items')->latest('id')->get(),
             'queued' => LaserCutterJob::whereIn('status', ['queued', 'cutting'])->count(),
             'completed' => $this->completedOrderId ? Order::find($this->completedOrderId) : null,
+            'collectCustomer' => $this->showCollect && ($this->collect['customer_id'] ?? null) ? Customer::find($this->collect['customer_id']) : null,
+            'debtors' => $this->showCollect
+                ? Customer::where('current_balance', '>', 0)
+                    ->when(strlen($this->collectSearch) >= 2, fn ($q) => $q->where(fn ($q) => $q->where('name', 'like', "%{$this->collectSearch}%")->orWhere('phone', 'like', '%'.(Customer::normalizePhone($this->collectSearch) ?: $this->collectSearch).'%')))
+                    ->orderByDesc('current_balance')->limit(8)->get()
+                : collect(),
         ];
     }
 }; ?>
@@ -553,6 +606,7 @@ new #[Layout('admin.layouts.pos')] #[Title('POS')] class extends Component
                 <i class="ri-pause-circle-line me-1"></i>Held
                 @if ($held->count())<span class="badge bg-warning text-dark ms-1">{{ $held->count() }}</span>@endif
             </button>
+            <button type="button" class="btn btn-light btn-sm" wire:click="openCollect"><i class="ri-hand-coin-line me-1"></i>Khata payment</button>
             <a href="{{ route('admin.pos.sales') }}" class="btn btn-light btn-sm"><i class="ri-receipt-line me-1"></i>Sales</a>
             <a href="{{ route('admin.returns.create') }}" class="btn btn-light btn-sm"><i class="ri-arrow-go-back-line me-1"></i>Return / exchange</a>
             @can('laser.manage')
@@ -871,6 +925,50 @@ new #[Layout('admin.layouts.pos')] #[Title('POS')] class extends Component
             </div>
             <div class="col-12"><input class="form-control form-control-sm" placeholder="Note on this sale (optional)" wire:model="note"></div>
         </div>
+    </x-admin.modal>
+
+    {{-- Khata collection --}}
+    <x-admin.modal :show="$showCollect" close="$set('showCollect', false)" title="Receive khata payment" subtitle="A customer paying off what they owe. A payment receipt prints automatically.">
+        <form wire:submit="saveCollect" id="collect-form">
+            @if ($collectCustomer)
+                <div class="d-flex align-items-center gap-3 p-3 rounded-3 bg-light mb-3">
+                    <span class="avatar avatar-sm avatar-item bg-primary text-white rounded-circle"><i class="ri-user-3-line"></i></span>
+                    <div class="flex-grow-1"><div class="fw-semibold">{{ $collectCustomer->name }}</div><div class="fs-12 text-muted">{{ $collectCustomer->phone }}</div></div>
+                    <div class="text-end"><div class="fs-12 text-muted">Owes</div><div class="fw-bold text-danger">{{ money($collectCustomer->current_balance) }}</div></div>
+                    <button type="button" class="btn btn-sm btn-light" wire:click="$set('collect.customer_id', null)">Change</button>
+                </div>
+            @else
+                <div class="form-icon mb-2"><input type="search" class="form-control form-control-icon" placeholder="Search name or phone" wire:model.live.debounce.300ms="collectSearch"><i class="ri-search-2-line text-muted"></i></div>
+                <div class="list-group mb-3">
+                    @forelse ($debtors as $d)
+                        <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between" wire:click="pickCollectCustomer({{ $d->id }})" wire:key="debtor-{{ $d->id }}">
+                            <span><span class="fw-semibold">{{ $d->name }}</span> <span class="text-muted fs-12">{{ $d->phone }}</span></span>
+                            <span class="text-danger fw-semibold">{{ money($d->current_balance) }}</span>
+                        </button>
+                    @empty
+                        <div class="list-group-item text-muted fs-13">No customers with a khata balance found.</div>
+                    @endforelse
+                </div>
+                @error('collect.customer_id')<div class="text-danger fs-13 mb-2">{{ $message }}</div>@enderror
+            @endif
+            <div class="row g-3">
+                <div class="col-12">
+                    <div class="btn-group w-100">
+                        <input type="radio" class="btn-check" id="col-cash" value="cash" wire:model.live="collect.method"><label class="btn btn-outline-primary" for="col-cash"><i class="ri-money-dollar-circle-line me-1"></i>Cash</label>
+                        <input type="radio" class="btn-check" id="col-bank" value="bank" wire:model.live="collect.method"><label class="btn btn-outline-primary" for="col-bank"><i class="ri-bank-line me-1"></i>Bank transfer</label>
+                    </div>
+                </div>
+                @if (($collect['method'] ?? 'cash') === 'bank')
+                    <div class="col-12"><select class="form-select @error('collect.bank_account_id') is-invalid @enderror" wire:model="collect.bank_account_id">@foreach ($banks as $b)<option value="{{ $b->id }}">{{ $b->displayName() }}</option>@endforeach</select></div>
+                @endif
+                <div class="col-md-6"><label class="form-label">Amount (Rs.)</label><input type="number" min="0" step="0.01" class="form-control form-control-lg @error('collect.amount') is-invalid @enderror" wire:model="collect.amount">@error('collect.amount')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                <div class="col-md-6"><label class="form-label">Note</label><input class="form-control" wire:model="collect.note" placeholder="Optional"></div>
+            </div>
+        </form>
+        <x-slot:footer>
+            <button type="button" class="btn btn-light" wire:click="$set('showCollect', false)">Cancel</button>
+            <button type="submit" form="collect-form" class="btn btn-primary" wire:loading.attr="disabled"><i class="ri-printer-line me-1"></i>Receive & print</button>
+        </x-slot:footer>
     </x-admin.modal>
 
     {{-- Held sales --}}

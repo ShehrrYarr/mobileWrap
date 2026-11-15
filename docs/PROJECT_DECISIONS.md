@@ -70,6 +70,14 @@ Agreed scope and decisions for the Accessory Management System, POS, Laser Cutte
   - Khata: any saved customer can buy on credit with no limit checks.
   - No cash register shifts; cash sales post straight to the Cash In Hand ledger.
   - POS allows selling when the system shows 0 stock (shows a warning; stock goes negative) so a miscount never blocks a sale.
+- **Phase 3 delivered 2026-11-16** — vendors, purchases, vendor ledger, customer khata, bank & cash, expenses, stock movements report, printable statements. Decisions made at the start of Phase 3:
+  - Purchases are simple PKR bills: stock cost = the unit price on the bill. No landed costs, import duties or foreign currency. Bill discount / freight change what you owe the vendor, not stock cost.
+  - Costing: weighted average. Each receipt re-averages the variant's cost and updates its cost price.
+  - Stock and the vendor payable are booked when goods are **received** (partial deliveries allowed), not when the PO is saved. Purchase "balance due" = value received − returns − payments. Paying an ordered-but-not-received PO counts as an advance.
+  - Khata collections: from the customer page or the POS ("Khata payment"), each with a printed 80 mm payment receipt.
+  - Cash can't go below zero: vendor payments, expenses, transfers and withdrawals from Cash In Hand are refused if the drawer doesn't hold enough. Banks may overdraw.
+  - Ledger screens show running balances in date order (back-dated entries slot into place); `balance_after` on rows stays in posting order.
+  - Unit costs are stored to 4 decimals because raw materials are costed per cm².
 
 ## Build phases
 
