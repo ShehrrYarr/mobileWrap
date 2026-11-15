@@ -57,3 +57,10 @@
 .mw-timeline li::before { content: ''; position: absolute; left: 6px; top: 6px; width: 10px; height: 10px; border-radius: 50%; background: var(--bs-primary); box-shadow: 0 0 0 4px rgba(var(--bs-primary-rgb), .15); }
 .mw-timeline li::after { content: ''; position: absolute; left: 10px; top: 20px; bottom: 0; width: 2px; background: var(--bs-border-color); }
 .mw-timeline li:last-child::after { display: none; }
+
+/* Sidebar sub-menus slide open/closed (sidebar.js); the arrow turns smoothly with them */
+.app-sidebar .side-menu__angle { transition: transform .25s ease; }
+.app-sidebar .slide.slide-closing > .side-menu__item .side-menu__angle { transform: none !important; }
+/* Any dropdown outside the template's .dropdown / .btn-group wrappers still animates */
+.dropdown-menu.show:not(.dropdown .dropdown-menu):not(.btn-group .dropdown-menu) { animation: dropAnim .25s both; }
+@media (prefers-reduced-motion: reduce) { .app-sidebar .side-menu__angle { transition: none; } }

@@ -38,6 +38,58 @@ function openParentMenu(parentUl, mainLayout) {
   }
 }
 
+// Smooth slide-down / slide-up for sub-menus (the template only toggled display).
+const SLIDE_MS = 250;
+
+function slideMenuOf(li) {
+  return li.querySelector(':scope > .slide-menu');
+}
+
+function canAnimateSlide(menu) {
+  return !!menu && typeof menu.animate === 'function'
+    && document.documentElement.getAttribute('data-main-layout') !== 'horizontal'
+    && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function openSlide(li) {
+  const menu = slideMenuOf(li);
+  const from = menu && menu._slideAnim ? menu.offsetHeight : 0; // reopening mid-close
+  if (menu && menu._slideAnim) menu._slideAnim.cancel();
+  li.classList.remove('slide-closing');
+  li.classList.add('open-menu');
+  if (!canAnimateSlide(menu)) return;
+  menu.style.overflow = 'hidden';
+  const anim = menu.animate(
+    [{ height: from + 'px', opacity: from ? 1 : 0 }, { height: menu.scrollHeight + 'px', opacity: 1 }],
+    { duration: SLIDE_MS, easing: 'cubic-bezier(.2, .7, .3, 1)' }
+  );
+  menu._slideAnim = anim;
+  anim.onfinish = () => { menu.style.overflow = ''; menu._slideAnim = null; };
+}
+
+function closeSlide(li) {
+  if (!li.classList.contains('open-menu')) return;
+  const menu = slideMenuOf(li);
+  if (!canAnimateSlide(menu) || !menu.offsetHeight) {
+    li.classList.remove('open-menu', 'slide-closing');
+    return;
+  }
+  const from = menu.offsetHeight;
+  if (menu._slideAnim) menu._slideAnim.cancel();
+  menu.style.overflow = 'hidden';
+  li.classList.add('slide-closing'); // arrow turns back straight away
+  const anim = menu.animate(
+    [{ height: from + 'px', opacity: 1 }, { height: '0px', opacity: 0 }],
+    { duration: SLIDE_MS - 30, easing: 'ease-in' }
+  );
+  menu._slideAnim = anim;
+  anim.onfinish = () => {
+    li.classList.remove('open-menu', 'slide-closing');
+    menu.style.overflow = '';
+    menu._slideAnim = null;
+  };
+}
+
 function dropdownInit() {
   const mainMenu = document.querySelector('.main-menu');
   if (mainMenu) {
@@ -58,15 +110,17 @@ function dropdownInit() {
         const siblingSlides = item.parentElement.querySelectorAll(".slide");
         siblingSlides.forEach((sibling) => {
           if (sibling !== item) {
-            sibling.classList.remove("open-menu");
+            closeSlide(sibling);
           }
         });
 
         // Toggle the current slide (expand/collapse submenu)
         if (document.documentElement.getAttribute('data-main-layout') === 'two-column')
           item.classList.add("open-menu");
+        else if (item.classList.contains("open-menu") && !item.classList.contains("slide-closing"))
+          closeSlide(item);
         else
-          item.classList.toggle("open-menu");
+          openSlide(item);
       });
     })
   }

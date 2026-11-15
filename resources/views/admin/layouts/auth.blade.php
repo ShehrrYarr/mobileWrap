@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script src="{{ asset('assets/shared/ux.js') }}?v={{ @filemtime(public_path('assets/shared/ux.js')) }}"></script>
     <meta name="robots" content="noindex">
     <title>{{ $title ?? 'Sign in' }} | {{ store_name() }} Admin</title>
     <link rel="shortcut icon" href="{{ asset('assets/images/Favicon.png') }}">

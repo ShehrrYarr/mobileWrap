@@ -6,6 +6,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script src="{{ asset('assets/shared/ux.js') }}?v={{ @filemtime(public_path('assets/shared/ux.js')) }}"></script>
     <title>{{ isset($title) && $title ? $title.' — '.store_name() : (setting('seo.meta_title') ?: store_name()) }}</title>
     <meta name="description" content="{{ $metaDescription ?? setting('seo.meta_description', setting('store.tagline')) }}">
     <meta name="theme-color" content="{{ $t['preview']['bg'] ?? '#ffffff' }}">

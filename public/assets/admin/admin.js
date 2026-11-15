@@ -29,7 +29,10 @@
     // SweetAlert2 confirmation used by delete buttons: confirmAction('Delete?', () => $wire.delete(1))
     window.confirmAction = function (message, onConfirm, options) {
         options = options || {};
-        if (!window.Swal) { if (window.confirm(message)) onConfirm(); return; }
+        // The button that opened the dialog shows "Please wait…" once the user confirms.
+        var pressed = window.mwUx ? window.mwUx.lastPressed() : null;
+        var go = function () { if (pressed && window.mwUx) window.mwUx.arm(pressed); onConfirm(); };
+        if (!window.Swal) { if (window.confirm(message)) go(); return; }
         Swal.fire({
             title: options.title || 'Are you sure?',
             text: message,
@@ -39,7 +42,7 @@
             cancelButtonText: 'Cancel',
             customClass: { confirmButton: 'btn me-2 ' + ((options.icon || 'warning') === 'warning' ? 'btn-danger' : 'btn-primary'), cancelButton: 'btn btn-light' },
             buttonsStyling: false,
-        }).then(function (r) { if (r.isConfirmed) onConfirm(); });
+        }).then(function (r) { if (r.isConfirmed) go(); });
     };
 
     function initTooltips() {
