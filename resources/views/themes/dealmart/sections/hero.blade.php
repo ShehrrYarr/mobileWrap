@@ -12,7 +12,7 @@
                             <h2>{{ $s['title'] ?? '' }}</h2>
                             <p class="mb-4">{{ $s['subtitle'] ?? '' }}</p>
                             @if (! empty($s['button_text']))
-                                <a href="{{ $s['button_url'] ?? route('shop') }}" wire:navigate class="btn btn-light btn-lg fw-bold" style="color: #E62E2D">{{ $s['button_text'] }} <i class="ri-arrow-right-line"></i></a>
+                                <a href="{{ store_url($s['button_url'] ?? null) }}" wire:navigate class="btn btn-light btn-lg fw-bold" style="color: #E62E2D">{{ $s['button_text'] }} <i class="ri-arrow-right-line"></i></a>
                             @endif
                         </div>
                         @if ($img)<img src="{{ $img }}" alt="">@endif

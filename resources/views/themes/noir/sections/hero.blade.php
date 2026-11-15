@@ -15,7 +15,7 @@
                 @if (! empty($slide['subtitle']))<p class="nx-hero-sub">{{ $slide['subtitle'] }}</p>@endif
                 <div class="d-flex flex-wrap gap-3 mt-4">
                     @if (! empty($slide['button_text']))
-                        <a href="{{ $slide['button_url'] ?? route('shop') }}" wire:navigate class="btn btn-primary btn-lg">{{ $slide['button_text'] }} <i class="ri-arrow-right-up-line ms-1"></i></a>
+                        <a href="{{ store_url($slide['button_url'] ?? null) }}" wire:navigate class="btn btn-primary btn-lg">{{ $slide['button_text'] }} <i class="ri-arrow-right-up-line ms-1"></i></a>
                     @endif
                     <a href="{{ route('shop') }}" wire:navigate class="btn btn-outline-ink btn-lg">Browse all</a>
                 </div>

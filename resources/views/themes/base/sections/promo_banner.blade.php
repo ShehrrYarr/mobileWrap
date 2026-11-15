@@ -6,7 +6,7 @@
                 @foreach ($banners as $i => $b)
                     @php($img = ! empty($b['image']) ? upload_url($b['image']) : $data['showcase']->get($i)?->imageUrl())
                     <div class="col-md-6">
-                        <a href="{{ $b['button_url'] ?? route('shop') }}" wire:navigate class="sf-promo {{ $i % 2 ? 'alt' : '' }} d-flex text-decoration-none" style="color: inherit">
+                        <a href="{{ store_url($b['button_url'] ?? null) }}" wire:navigate class="sf-promo {{ $i % 2 ? 'alt' : '' }} d-flex text-decoration-none" style="color: inherit">
                             @if ($img)<img src="{{ $img }}" alt="" loading="lazy">@endif
                             <h3>{{ $b['title'] ?? '' }}</h3>
                             <p class="sf-muted mb-3" style="max-width: 60%; position: relative">{{ $b['subtitle'] ?? '' }}</p>

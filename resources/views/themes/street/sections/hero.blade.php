@@ -11,7 +11,7 @@
                 </h1>
                 @if (! empty($slide['subtitle']))<p class="fs-5 fw-semibold" style="max-width: 520px">{{ $slide['subtitle'] }}</p>@endif
                 <div class="d-flex flex-wrap gap-3 mt-4">
-                    @if (! empty($slide['button_text']))<a href="{{ $slide['button_url'] ?? route('shop') }}" wire:navigate class="btn btn-primary btn-lg">{{ $slide['button_text'] }} →</a>@endif
+                    @if (! empty($slide['button_text']))<a href="{{ store_url($slide['button_url'] ?? null) }}" wire:navigate class="btn btn-primary btn-lg">{{ $slide['button_text'] }} →</a>@endif
                     <a href="{{ route('deals') }}" wire:navigate class="btn btn-outline-ink btn-lg">Steals</a>
                 </div>
             </div>

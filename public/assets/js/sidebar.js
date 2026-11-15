@@ -45,6 +45,11 @@ function dropdownInit() {
 
     // Loop through all menu items and check if they correspond to the current page
     menuItemsSlide.forEach((item) => {
+      // layout.js calls dropdownInit() again after (re)initialising SimpleBar in the
+      // vertical layout. Binding twice toggles the menu open and shut on one click,
+      // so attach the handler only once per menu item.
+      if (item.dataset.dropdownBound) return;
+      item.dataset.dropdownBound = '1';
 
       item.addEventListener("click", function (e) {
         e.stopPropagation(); // Prevent event from bubbling up and triggering parent menu

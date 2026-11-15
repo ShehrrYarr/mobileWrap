@@ -763,7 +763,7 @@ new #[Layout('admin.layouts.pos')] #[Title('POS')] class extends Component
                                 <span class="fw-semibold">{{ $v->label }}</span>
                             </div>
                             <div class="d-flex justify-content-between mt-1 fs-13">
-                                <span class="text-primary fw-bold">{{ money(app(AppServicesPricingService::class)->variantPrice($v, $tier, $picker)['price']) }}</span>
+                                <span class="text-primary fw-bold">{{ money(app(\App\Services\PricingService::class)->variantPrice($v, $tier, $picker)['price']) }}</span>
                                 <span class="{{ $v->availableQuantity() <= 0 ? 'text-danger' : 'text-muted' }}">{{ qty($v->availableQuantity()) }} in stock</span>
                             </div>
                             <div class="fs-11 text-muted">{{ $v->sku }}</div>

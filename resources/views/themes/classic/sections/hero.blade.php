@@ -11,7 +11,7 @@
                         <h1>{{ $s['title'] ?? '' }}</h1>
                         <p>{{ $s['subtitle'] ?? '' }}</p>
                         <div class="d-flex flex-wrap gap-3 mt-4">
-                            @if (! empty($s['button_text']))<a href="{{ $s['button_url'] ?? route('shop') }}" wire:navigate class="btn btn-primary btn-lg">{{ $s['button_text'] }}</a>@endif
+                            @if (! empty($s['button_text']))<a href="{{ store_url($s['button_url'] ?? null) }}" wire:navigate class="btn btn-primary btn-lg">{{ $s['button_text'] }}</a>@endif
                             <a href="{{ route('deals') }}" wire:navigate class="btn btn-outline-ink btn-lg" style="background: #fff">View offers</a>
                         </div>
                     </div>

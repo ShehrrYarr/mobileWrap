@@ -38,7 +38,7 @@
 
     @include('admin.partials.toasts')
 
-    <script src="{{ asset('assets/js/sidebar.js') }}" data-navigate-once></script>
+    <script src="{{ asset('assets/js/sidebar.js') }}?v={{ @filemtime(public_path('assets/js/sidebar.js')) }}" data-navigate-once></script>
     <script src="{{ asset('assets/libs/bootstrap/js/bootstrap.bundle.min.js') }}" data-navigate-once></script>
     <script src="{{ asset('assets/libs/simplebar/simplebar.min.js') }}" data-navigate-once></script>
     <script src="{{ asset('assets/libs/sweetalert2/sweetalert2.min.js') }}" data-navigate-once></script>

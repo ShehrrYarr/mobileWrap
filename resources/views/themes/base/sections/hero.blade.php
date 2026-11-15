@@ -9,7 +9,7 @@
                 <h1 class="sf-title" style="font-size: clamp(38px, 5vw, 64px)">{{ $slide['title'] ?? store_name() }}</h1>
                 <p class="sf-sub fs-5">{{ $slide['subtitle'] ?? '' }}</p>
                 @if (! empty($slide['button_text']))
-                    <a href="{{ $slide['button_url'] ?? route('shop') }}" wire:navigate class="btn btn-primary btn-lg mt-3">{{ $slide['button_text'] }}</a>
+                    <a href="{{ store_url($slide['button_url'] ?? null) }}" wire:navigate class="btn btn-primary btn-lg mt-3">{{ $slide['button_text'] }}</a>
                 @endif
             </div>
             <div class="col-lg-6">

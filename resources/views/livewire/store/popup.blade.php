@@ -86,7 +86,7 @@ new class extends Component
                                 @error('email')<div class="text-danger mt-1" style="font-size: 13px">{{ $message }}</div>@enderror
                             @endif
                         @elseif ($popup->button_text)
-                            <a href="{{ $popup->button_url ?: route('shop') }}" wire:navigate class="btn btn-primary btn-lg w-100" @click="close()">{{ $popup->button_text }}</a>
+                            <a href="{{ store_url($popup->button_url) }}" wire:navigate class="btn btn-primary btn-lg w-100" @click="close()">{{ $popup->button_text }}</a>
                         @endif
                         <button type="button" class="btn btn-link sf-muted mt-2" style="font-size: 13px" @click="close()">No thanks</button>
                     </div>

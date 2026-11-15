@@ -33,6 +33,32 @@ if (! function_exists('upload_url')) {
     }
 }
 
+if (! function_exists('store_url')) {
+    /**
+     * A link typed in the admin (popup button, hero slide, promo banner) as a URL that
+     * works wherever the store is hosted. "/shop?category=chargers" becomes
+     * http://host/mobileWrap/shop?category=chargers on the live server; full URLs,
+     * #anchors, mailto: and tel: links are left as they are.
+     */
+    function store_url(?string $link, ?string $fallback = null): string
+    {
+        $link = trim((string) $link);
+        if ($link === '') {
+            return $fallback ?? route('shop');
+        }
+        if (! str_starts_with($link, '/') || str_starts_with($link, '//')) {
+            return $link;
+        }
+
+        $base = \App\Support\Livewire\SubdirectoryHandleRequests::basePath();
+        if ($base !== '' && ($link === $base || str_starts_with($link, $base.'/'))) {
+            $link = substr($link, strlen($base)) ?: '/'; // already includes the sub-folder
+        }
+
+        return url($link);
+    }
+}
+
 if (! function_exists('theme')) {
     function theme(): Theme
     {
