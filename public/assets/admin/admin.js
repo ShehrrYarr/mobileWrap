@@ -83,6 +83,25 @@
         });
     }
 
+    // Keep Herozi's layout settings across wire:navigate.
+    // The template's layout.js puts its settings on <html> from JavaScript at first load
+    // (data-main-layout, data-bs-theme, data-sidebar, fonts…). On every wire:navigate, Livewire
+    // copies the new page's <html> attributes over the current ones and deletes any the server
+    // didn't send, which is all of these. Without data-main-layout="close-sidebar" a phone shows
+    // the desktop sidebar as a fixed 240px column; dark mode and fonts reset too.
+    // onSwap runs right after the new page is swapped in and before it's painted, so nothing flickers.
+    document.addEventListener('livewire:navigating', function (e) {
+        const keep = Array.from(document.documentElement.attributes)
+            .filter(function (a) { return a.name !== 'class' && a.name !== 'style'; })
+            .map(function (a) { return [a.name, a.value]; });
+        e.detail?.onSwap?.(function () {
+            const html = document.documentElement;
+            keep.forEach(function ([name, value]) {
+                if (!html.hasAttribute(name)) html.setAttribute(name, value);
+            });
+        });
+    });
+
     document.addEventListener('DOMContentLoaded', function () { markActiveMenu(); initTooltips(); });
     document.addEventListener('livewire:navigated', function () {
         markActiveMenu();
